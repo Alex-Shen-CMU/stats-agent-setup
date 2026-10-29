@@ -1,0 +1,32 @@
+#!/bin/bash
+#SBATCH --job-name=claude_followup
+#SBATCH --output=slurm_logs/claude_followup_%j.out
+#SBATCH --error=slurm_logs/claude_followup_%j.err
+#SBATCH --time=00:30:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+
+# Generic Claude followup: runs an unattended `claude -p` session once the jobs it depends
+# on have finished. Copy it to the repo root on wright and submit from there:
+#   mkdir -p slurm_logs
+#   sbatch -p <priority partition> --dependency=afterany:<jobid[:jobid...]> claude_followup.sb "<prompt text>" [conda env]
+# No partition is set here: pass a priority (non-preemptible) partition with -p, so the
+# followup neither waits behind the queue nor gets preempted (see the wright skill).
+# The session runs in the submitting directory and activates the conda env if one is given.
+set -euo pipefail
+
+if [ -n "${2:-}" ]; then
+  for base in "${CONDA_BASE:-}" "$HOME/miniconda3" "$HOME/anaconda3" "$(conda info --base 2>/dev/null || true)"; do
+    if [ -n "$base" ] && [ -f "$base/etc/profile.d/conda.sh" ]; then
+      source "$base/etc/profile.d/conda.sh"
+      break
+    fi
+  done
+  conda activate "$2"
+fi
+
+export PATH="$HOME/.local/bin:$PATH"
+cd "${SLURM_SUBMIT_DIR:-$PWD}"
+claude -p "$1" --permission-mode auto
