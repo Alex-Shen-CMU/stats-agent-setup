@@ -36,6 +36,16 @@ curl -fsSL https://raw.githubusercontent.com/Alex-Shen-CMU/stats-agent-setup/mai
 
 For each server you have an account on, it checks `~/.ssh/config` for a working key. If there isn't one, it generates a key pair, installs it with `ssh-copy-id`, verifies the login and adds a `~/.ssh/config` entry. Bridges-2 is the exception: PSC requires keys to be registered through its website, so the script points you to [PSC's ssh instructions](https://www.psc.edu/about-using-ssh/) instead. It also fills in your username (the `<user_id>` placeholder) in the installed skills. The department servers share one home directory, so they are set up once for all nodes.
 
+### GitHub MCP server
+
+The `github-issues-workflow` skill works best with the GitHub MCP server. To set it up for a project, run this from the project directory:
+
+```
+curl -fsSL https://raw.githubusercontent.com/Alex-Shen-CMU/stats-agent-setup/main/github_mcp.sh | bash
+```
+
+It writes a `.mcp.json` entry that refers to the token through a `${GITHUB_PERSONAL_ACCESS_TOKEN}` placeholder (safe to commit), and stores the token itself in `.claude/settings.local.json` (permissions 600; keep it out of git). The token is entered at a hidden prompt. If the server is already configured, the script says so and asks whether to replace the token on file.
+
 ## Contributors
 
 Clone this repo and feel free to add any new skills or suggest improvements to existing ones. You can suggest changes on a new branch off of main and open a pull request.
