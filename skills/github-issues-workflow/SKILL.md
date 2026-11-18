@@ -7,6 +7,16 @@ description: How to pick up, track, and report on a task that is a GitHub issue 
 
 A bare number ("work on 11", "#11") means issue 11 in this project's GitHub repository (the `origin` remote: `git remote get-url origin`). If there is no GitHub remote, ask the user which repository they mean.
 
+## GitHub MCP check
+
+Before anything else, check that the GitHub MCP server is available (its tools, such as `issue_read` and `add_issue_comment`, are listed; or a `github` entry exists in `.mcp.json`). If it isn't, tell the user it isn't installed and give them this command to set it up (run from the project directory; it asks for a GitHub token with hidden input, then they restart the agent):
+
+```
+curl -fsSL https://raw.githubusercontent.com/Alex-Shen-CMU/stats-agent-setup/main/github_mcp.sh | bash
+```
+
+Without the MCP server you can still use the `gh` CLI if it is installed and authenticated; otherwise stop and wait for the user.
+
 ## Starting
 
 1. `git pull` locally. Stop if local is behind with uncommitted work or the histories diverged. Mention branches on GitHub or a cluster that aren't present locally.
