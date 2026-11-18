@@ -6,6 +6,8 @@
 #   written to .mcp.json, so that file is safe to commit).
 # - Stores the token in <project>/.claude/settings.local.json (under "env"), which is
 #   personal and not meant to be committed.
+# - Adds .claude/settings.local.json to .gitignore if git isn't already ignoring it (opt out
+#   with --no-gitignore).
 # - The token is typed at a hidden prompt, so it never appears in terminal output.
 # - If the github server is already configured, says so and asks whether to replace the
 #   token on file.
@@ -15,18 +17,21 @@
 #   bash github_mcp.sh [--dir PATH]
 #
 # Options:
-#   --dir PATH   project to set up (default: current directory)
+#   --dir PATH       project to set up (default: current directory)
+#   --no-gitignore   don't add .claude/settings.local.json to .gitignore
 set -uo pipefail
 
 TARGET="$PWD"
 VAR_NAME="GITHUB_PERSONAL_ACCESS_TOKEN"
+UPDATE_GITIGNORE=1
 
 die() { echo "error: $*" >&2; exit 1; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --dir) TARGET="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,18p' "${BASH_SOURCE[0]:-/dev/null}" 2>/dev/null || true; exit 0 ;;
+    --no-gitignore) UPDATE_GITIGNORE=0; shift ;;
+    -h|--help) sed -n '2,20p' "${BASH_SOURCE[0]:-/dev/null}" 2>/dev/null || true; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
 done
@@ -157,13 +162,19 @@ os.chmod(path, 0o600)
 unset TOKEN
 echo "Stored the token in $SETTINGS_JSON (permissions 600)"
 
-# ---------------------------------------------------------------- gitignore check
-if git -C "$TARGET" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+# ---------------------------------------------------------------- gitignore
+# Keep the token out of git: add settings.local.json to .gitignore unless it is already
+# ignored (or the user passed --no-gitignore).
+if [ "$UPDATE_GITIGNORE" = 1 ] && git -C "$TARGET" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if ! git -C "$TARGET" check-ignore -q "$SETTINGS_JSON"; then
+    GITIGNORE="$TARGET/.gitignore"
+    # make sure we start on a fresh line if the file lacks a trailing newline
+    [ -s "$GITIGNORE" ] && [ -n "$(tail -c1 "$GITIGNORE")" ] && echo >> "$GITIGNORE"
+    echo ".claude/settings.local.json" >> "$GITIGNORE"
     echo
-    echo "warning: .claude/settings.local.json is not ignored by git. Add it to .gitignore"
-    echo "so the token is never committed:"
-    echo "  echo '.claude/settings.local.json' >> .gitignore"
+    echo "Note: .claude/settings.local.json was not ignored by git, so I added it to"
+    echo "$GITIGNORE to keep your token from being committed."
+    echo "(To skip this next time, pass --no-gitignore.)"
   fi
 fi
 

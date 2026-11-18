@@ -44,7 +44,7 @@ The `github-issues-workflow` skill works best with the GitHub MCP server. To set
 curl -fsSL https://raw.githubusercontent.com/Alex-Shen-CMU/stats-agent-setup/main/github_mcp.sh | bash
 ```
 
-It writes a `.mcp.json` entry that refers to the token through a `${GITHUB_PERSONAL_ACCESS_TOKEN}` placeholder (safe to commit), and stores the token itself in `.claude/settings.local.json` (permissions 600; keep it out of git). The token is entered at a hidden prompt. If the server is already configured, the script says so and asks whether to replace the token on file.
+It writes a `.mcp.json` entry that refers to the token through a `${GITHUB_PERSONAL_ACCESS_TOKEN}` placeholder (safe to commit), and stores the token itself in `.claude/settings.local.json` (permissions 600). If git isn't already ignoring that file, the script adds it to `.gitignore` and tells you; pass `--no-gitignore` to skip this. The token is entered at a hidden prompt. If the server is already configured, the script says so and asks whether to replace the token on file.
 
 ## Contributors
 
